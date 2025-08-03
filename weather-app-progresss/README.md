@@ -5,7 +5,7 @@
 #### Task 1.1: Create Multi-Stage Dockerfile
 
 Create a `Dockerfile` that:
-- Uses Node.js Alpine image for the build stage
+- [x] Uses Node.js Alpine image for the build stage
 - Builds the React application
 - Uses nginx Alpine for the production stage
 - Serves the built application
