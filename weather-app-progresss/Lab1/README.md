@@ -108,4 +108,100 @@ CONTAINER ID   IMAGE         COMMAND                  CREATED        STATUS     
 Link to working website:  
 [ Weather-app ](http://ec2-98-86-58-135.compute-1.amazonaws.com:8080)
 
+---
+<br>
+<br>
 
+---
+
+## 🔧 Lab 2: Code Quality and Testing Setup
+
+#### Task 2.1: Configure ESLint for TypeScript
+- [x] Install necessary ESLint packages for TypeScript
+- [x] Configure ESLint to check .ts and .tsx files
+- [x] Set up rules to report unused disable directives
+- [x] Configure maximum warnings threshold
+---
+<br>
+
+- [x] Install necessary ESLint packages for TypeScript
+```bash
+npm install --save-dev eslint @eslint/js typescript typescript-eslint
+```
+
+- [x] Configure ESLint to check .ts and .tsx files
+- [x] Set up rules to report unused disable directives
+```ts
+import tseslint from "typescript-eslint";
+import { defineConfig } from "eslint/config";
+
+export default defineConfig({
+  reportUnusedDisableDirectives: true,
+  overrides: [
+    {
+      files: ["**/*.{ts,tsx}"],
+      ...tseslint.configs.recommended,
+    },
+  ],
+});
+```
+- [x] Configure maximum warnings threshold
+
+```json
+  "scripts": {
+    "lint": "eslint . --max-warnings=10"
+    ...
+  }
+  ```
+  ---
+  ---
+  <br>
+
+#### Task 2.2: Add npm Scripts
+
+- [x] Add these scripts to `package.json`:
+- `lint`: Run ESLint on TypeScript files
+- `lint:fix`: Run ESLint with auto-fix
+- `test`: Run tests using Vitest
+- `test:coverage`: Run tests with coverage reporting
+
+
+```json
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --max-warnings=10",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  }
+  ```
+---
+---
+<br>
+
+#### Task 2.3: Set Up Testing Framework
+- Install Vitest and React Testing Library
+- Configure testing environment
+- Set up Jest DOM matchers
+
+---
+---
+<br>
+
+#### Task 2.4: Create Basic Tests
+- Write component rendering tests
+- Write API service tests
+- Write basic integration tests
+- Organize tests in appropriate directories
+
+---
+---
+<br>
+
+### Success Criteria
+- `npm run lint` passes with 0 errors
+- `npm run test` passes all tests
+- `npm run build` completes successfully
+- Test coverage meets reasonable thresholds
