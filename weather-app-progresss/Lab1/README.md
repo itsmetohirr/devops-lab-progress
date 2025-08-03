@@ -6,10 +6,10 @@
 
 Create a `Dockerfile` that:
 - [x] Uses Node.js Alpine image for the build stage
-- Builds the React application
-- Uses nginx Alpine for the production stage
-- Serves the built application
-- Exposes port 80
+- [x] Builds the React application
+- [x] Uses nginx Alpine for the production stage
+- [x] Serves the built application
+- [x] Exposes port 80
 
 
 ```Dockerfile
@@ -44,9 +44,9 @@ CMD ["nginx", "-g", "daemon off;"]
 #### Task 1.2: Create Nginx Configuration
 
 Create `nginx.conf` that:
-- Handles SPA routing (redirects all routes to index.html)
-- Serves static files efficiently
-- Sets appropriate MIME types
+- [x] Handles SPA routing (redirects all routes to index.html)
+- [x] Serves static files efficiently
+- [x] Sets appropriate MIME types
 
 nginx.conf 
 
@@ -84,11 +84,11 @@ docker run -p 8080:80 --name weather-app-container weather-app
 <br>
 
 ### Success Criteria
-- Container builds without errors
-- Application loads and functions correctly
-- All routes work properly (SPA routing)
-- Weather search functionality works
-- Container size is optimized (multi-stage build)
+- [x] Container builds without errors
+- [x] Application loads and functions correctly
+- [x] All routes work properly (SPA routing)
+- [x] Weather search functionality works
+- [x] Container size is optimized (multi-stage build)
 
 ```bash
 root@ip-172-31-45-9:~/project/weather-app# docker images
