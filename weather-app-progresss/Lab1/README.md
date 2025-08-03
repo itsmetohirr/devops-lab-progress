@@ -205,3 +205,122 @@ export default defineConfig({
 - `npm run test` passes all tests
 - `npm run build` completes successfully
 - Test coverage meets reasonable thresholds
+
+---
+<br>
+<br>
+
+---
+
+## ☁️ Lab 3: AWS S3 Static Website Hosting
+
+#### Task 3.3: Create Terraform Configuration
+
+1. **AWS Provider Configuration:**
+   - Set region to "us-east-1"
+
+2. **S3 Bucket Resources:**
+   - S3 bucket with unique name (use random_string)
+   - Website configuration with index.html
+   - Public access block settings
+   - Bucket policy for public read access
+   - Appropriate tags
+
+3. **Outputs:**
+   - Website endpoint URL
+   - Bucket name
+
+**Don't forget to disable public acces block**
+
+<br>
+<br>
+./terraform/main.tf
+
+```terraform
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_s3_bucket" "my_s3" {
+  bucket = "tohirdevops"
+}
+
+resource "aws_s3_bucket_website_configuration" "web_conf" {
+  bucket = aws_s3_bucket.my_s3.id
+
+  index_document {
+    suffix = "index.html"
+  }
+
+  error_document {
+    key = "error.html"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "public_access" {
+  bucket = aws_s3_bucket.my_s3.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
+resource "aws_s3_bucket_policy" "public_read" {
+  bucket = aws_s3_bucket.my_s3.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "PublicReadGetObject"
+        Effect    = "Allow"
+        Principal = "*"
+        Action    = "s3:GetObject"
+        Resource  = "${aws_s3_bucket.my_s3.arn}/*"
+      }
+    ]
+  })
+}
+
+output "website_url" {
+  description = "The S3 static website endpoint"
+  value       = aws_s3_bucket_website_configuration.web_conf.website_endpoint
+}
+
+output "bucket_name" {
+  description = "The name of the S3 bucket"
+  value       = aws_s3_bucket.my_s3.bucket
+}
+
+```
+<br>
+
+To see the bucket name:
+
+```bash
+terraform output bucket_name
+```
+
+To see the website_url:
+
+```bash
+terraform output website_url
+```
+
+### Success Criteria
+- [x] S3 bucket created with static website hosting
+- [x] Production build uploaded successfully
+- [x] Application accessible via S3 website URL
+- [x] All weather functionality works
+- [x] Terraform state managed properly
+<br>
+
+Bucket website endpoint: <br>
+http://tohirdevopsvention.s3-website-us-east-1.amazonaws.com/
+
+---
+---
+<br>
+<br>
+
+
