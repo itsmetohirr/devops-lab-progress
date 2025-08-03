@@ -8,4 +8,4 @@ Create `nginx.conf` that:
 - [] Handles SPA routing (redirects all routes to index.html)
 - [] Serves static files efficiently
 - [] Sets appropriate MIME types
-- [ ] Task item
+[ ] Task item
