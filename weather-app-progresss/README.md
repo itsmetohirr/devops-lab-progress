@@ -109,7 +109,7 @@ Link to working website:
 [ Weather-app ](http://ec2-98-86-58-135.compute-1.amazonaws.com:8080)
 
 ### Question/Problems:
-No problems 
+Vite is failing to read .env environment variables
 
 ---
 <br>
