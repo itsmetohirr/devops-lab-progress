@@ -718,3 +718,209 @@ Update your GitHub Actions workflow to include:
 
 - [x] Global CDN improves performance
 - [x] Cache invalidation works on deployment
+---
+<br><br>
+---
+
+
+## 📊 Lab 6: Basic Monitoring with CloudWatch
+
+
+Add to Terraform:
+
+1. **CloudWatch Alarms:**
+   - Monitor 4xx error rates
+   - Set appropriate thresholds
+   - Configure evaluation periods
+   - Target CloudFront metrics
+
+```tf
+resource "aws_cloudwatch_metric_alarm" "cloudfront_4xx_errors" {
+  alarm_name          = "High-4xx-Errors"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 2
+  metric_name         = "4xxErrorRate"
+  namespace           = "AWS/CloudFront"
+  period              = 300
+  statistic           = "Average"
+  threshold           = 1.0
+  alarm_description   = "Triggered when CloudFront 4xx error rate > 1%"
+  dimensions = {
+    DistributionId = aws_cloudfront_distribution.s3_distribution.id
+    Region         = "Global"
+  }
+  alarm_actions = [aws_sns_topic.cloudfront_alerts.arn]
+  ok_actions    = [aws_sns_topic.cloudfront_alerts.arn]
+}
+
+```
+
+2. **SNS Notifications:**
+   - Create SNS topic for alerts
+   - Set up email subscription
+   - Configure alarm actions
+
+```tf
+resource "aws_sns_topic" "cloudfront_alerts" {
+  name = "cloudfront-alerts"
+}
+
+resource "aws_sns_topic_subscription" "email_alert" {
+  topic_arn = aws_sns_topic.cloudfront_alerts.arn
+  protocol  = "email"
+  endpoint  = "itsmetohir@gmail.com"  # 🔁 Replace with your email
+}
+```
+
+3. **CloudWatch Dashboard:**
+   - Create custom dashboard
+   - Display key metrics (requests, bytes downloaded)
+   - Use time series visualization
+   - Monitor CloudFront performance
+
+```tf
+resource "aws_cloudwatch_dashboard" "cloudfront_dashboard" {
+  dashboard_name = "CloudFrontMonitoring"
+
+  dashboard_body = jsonencode({
+    widgets = [
+      {
+        type = "metric",
+        x    = 0,
+        y    = 0,
+        width  = 12,
+        height = 6,
+        properties = {
+          title = "CloudFront Requests",
+          metrics = [
+            [ "AWS/CloudFront", "Requests", "DistributionId", aws_cloudfront_distribution.s3_distribution.id, "Region", "Global" ]
+          ],
+          period = 300,
+          stat   = "Sum",
+          region = "us-east-1"
+        }
+      },
+      {
+        type = "metric",
+        x    = 0,
+        y    = 6,
+        width  = 12,
+        height = 6,
+        properties = {
+          title = "Bytes Downloaded",
+          metrics = [
+            [ "AWS/CloudFront", "BytesDownloaded", "DistributionId", aws_cloudfront_distribution.s3_distribution.id, "Region", "Global" ]
+          ],
+          period = 300,
+          stat   = "Sum",
+          region = "us-east-1"
+        }
+      },
+      {
+        type = "metric",
+        x    = 0,
+        y    = 12,
+        width  = 12,
+        height = 6,
+        properties = {
+          title = "4xx Error Rate",
+          metrics = [
+            [ "AWS/CloudFront", "4xxErrorRate", "DistributionId", aws_cloudfront_distribution.s3_distribution.id, "Region", "Global" ]
+          ],
+          period = 300,
+          stat   = "Average",
+          region = "us-east-1"
+        }
+      }
+    ]
+  })
+}
+```
+---
+<br><br>
+---
+
+## 🌍 Lab 7: Custom Domain with Route 53 & SSL (Optional)
+
+
+#### Task 7.1: Register Domain (Optional)
+
+- [x] Register domain through Route 53 or use existing domain
+- [x] Create hosted zone in Route 53
+
+  https://sumai.digital
+
+#### Task 7.2: Create SSL Certificate
+
+1. **ACM Certificate:**
+   - Request certificate for your domain
+   - Use DNS validation method
+   - Must be in us-east-1 region for CloudFront
+   - Configure lifecycle rules
+
+```tf
+resource "aws_acm_certificate" "sumai_cert" {
+  domain_name       = "sumai.digital"
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+```
+
+2. **DNS Validation:**
+   - Create Route 53 records for validation
+   - Use for_each loop for multiple domains
+   - Set appropriate TTL values
+   - Link to hosted zone
+
+```tf
+resource "aws_route53_record" "cert_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.sumai_cert.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      type   = dvo.resource_record_type
+      record = dvo.resource_record_value
+    }
+  }
+
+  zone_id = data.aws_route53_zone.main.zone_id
+  name    = each.value.name
+  type    = each.value.type
+  ttl     = 60
+  records = [each.value.record]
+}
+```
+
+3. **Certificate Validation:**
+   - Wait for DNS validation to complete
+   - Reference validation records
+   - Ensure certificate is ready for use
+
+```tf
+resource "aws_acm_certificate_validation" "cert" {
+  certificate_arn         = aws_acm_certificate.sumai_cert.arn
+  validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
+}
+```
+4. **CloudFront Integration:**
+   - Update CloudFront distribution
+   - Use custom SSL certificate
+   - Set security policy
+
+```tf
+  viewer_certificate {
+    acm_certificate_arn            = "arn:aws:acm:us-east-1:162717643867:certificate/423ec233-b106-42d0-8cc2-b95cfa30f56b"
+    ssl_support_method             = "sni-only"
+    minimum_protocol_version       = "TLSv1.2_2021"
+  }
+```
+   - Configure domain aliases
+
+```tf
+  aliases = ["sumai.digital"]
+```
+
+Start date: Saturday 2-August<br>
+End date: Wednesday 6-August
