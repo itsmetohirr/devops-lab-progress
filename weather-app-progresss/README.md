@@ -792,6 +792,10 @@ resource "aws_cloudwatch_dashboard" "cloudfront_dashboard" {
   })
 }
 ```
+
+### Question: 
+How to move terraform state (previously created resources) safely? I'm just importing everything.
+
 ---
 <br><br>
 ---
