@@ -65,7 +65,7 @@ server {
     location ~* \.(js|css|html|png|jpg|jpeg|svg|woff2?)$ {
         try_files $uri =404;
         access_log off;
-        expires 1y;
+        expires -1;
     }
 
     error_page 404 /index.html;
@@ -297,7 +297,7 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "my_s3" {
-  bucket = "tohirdevopsvention"
+  bucket = "weather-app-tohir"
 }
 
 resource "aws_s3_bucket_website_configuration" "web_conf" {
@@ -553,10 +553,10 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   is_ipv6_enabled     = true
   default_root_object = "index.html"
 
-  default_cache_behavior {
+    default_cache_behavior {
     allowed_methods  = ["GET", "HEAD"]
     cached_methods   = ["GET", "HEAD"]
-    target_origin_id = local.s3_origin_id
+    target_origin_id = "s3Origin"
 
     forwarded_values {
       query_string = false
@@ -566,55 +566,11 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
       }
     }
 
-    viewer_protocol_policy = "allow-all"
-    min_ttl                = 0
-    default_ttl            = 3600
-    max_ttl                = 86400
-  }
-
-  # Cache behavior with precedence 0
-  ordered_cache_behavior {
-    path_pattern     = "/content/immutable/*"
-    allowed_methods  = ["GET", "HEAD", "OPTIONS"]
-    cached_methods   = ["GET", "HEAD", "OPTIONS"]
-    target_origin_id = local.s3_origin_id
-
-    forwarded_values {
-      query_string = false
-      headers      = ["Origin"]
-
-      cookies {
-        forward = "none"
-      }
-    }
-
-    min_ttl                = 0
-    default_ttl            = 86400
-    max_ttl                = 31536000
-    compress               = true
     viewer_protocol_policy = "redirect-to-https"
-  }
-
-  # Cache behavior with precedence 1
-  ordered_cache_behavior {
-    path_pattern     = "/content/*"
-    allowed_methods  = ["GET", "HEAD", "OPTIONS"]
-    cached_methods   = ["GET", "HEAD"]
-    target_origin_id = local.s3_origin_id
-
-    forwarded_values {
-      query_string = false
-
-      cookies {
-        forward = "none"
-      }
-    }
-
-    min_ttl                = 0
-    default_ttl            = 3600
-    max_ttl                = 86400
     compress               = true
-    viewer_protocol_policy = "redirect-to-https"
+    min_ttl                = 0
+    default_ttl            = 3600  # 1 hour
+    max_ttl                = 86400 # 1 day
   }
 
   restrictions {
@@ -768,7 +724,7 @@ resource "aws_sns_topic" "cloudfront_alerts" {
 resource "aws_sns_topic_subscription" "email_alert" {
   topic_arn = aws_sns_topic.cloudfront_alerts.arn
   protocol  = "email"
-  endpoint  = "itsmetohir@gmail.com"  # 🔁 Replace with your email
+  endpoint  = "itsmetohir@gmail.com" 
 }
 ```
 
@@ -877,19 +833,14 @@ resource "aws_acm_certificate" "sumai_cert" {
 
 ```tf
 resource "aws_route53_record" "cert_validation" {
-  for_each = {
-    for dvo in aws_acm_certificate.sumai_cert.domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      type   = dvo.resource_record_type
-      record = dvo.resource_record_value
-    }
-  }
-
   zone_id = data.aws_route53_zone.main.zone_id
-  name    = each.value.name
-  type    = each.value.type
+
+  name    = local.dvo.resource_record_name
+  type    = local.dvo.resource_record_type
   ttl     = 60
-  records = [each.value.record]
+  records = [local.dvo.resource_record_value]
+
+  depends_on = [aws_acm_certificate.sumai_cert]
 }
 ```
 
@@ -923,4 +874,4 @@ resource "aws_acm_certificate_validation" "cert" {
 ```
 
 Start date: Saturday 2-August<br>
-End date: Wednesday 6-August
+End date: Wednesday 7-August
